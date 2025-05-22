@@ -1,0 +1,67 @@
+# Python
+__pycache__/
+*.py[cod]
+*.sqlite3
+*.log
+*.pot
+*.pyc
+*.pyo
+*.pyd
+*.env
+
+# Environment
+venv/
+env/
+ENV/
+.venv/
+.idea/
+*.swp
+
+# Django
+*.db
+*.sqlite3
+db.sqlite3
+media/
+staticfiles/
+local_settings.py
+
+# VSCode
+.vscode/
+
+# Mac
+.DS_Store
+
+# Redis dump
+dump.rdb
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Docker
+*.pid
+*.tar
+*.sock
+docker-compose.override.yml
+__MACOSX/
+
+# Coverage
+htmlcov/
+.coverage
+.tox/
+
+
+# Test files
+coverage.xml
+nosetests.xml
+test-results/
+
+# Logs
+*.log
+logs/
+
+# Secrets
+.env
+.env.*
+
+

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>YouTube Comment Sentiment Analyzer</title>
+    <style>
+        body {
+            background-color: #1e2a38;
+            color: white;
+            font-family: 'Segoe UI', sans-serif;
+            text-align: center;
+            padding: 50px;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background-color: #2c3e50;
+            padding: 30px;
+            border-radius: 12px;
+        }
+        input[type="text"] {
+            width: 80%;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+            margin-top: 15px;
+        }
+        button {
+            background-color: #1e90ff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            margin-top: 20px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        #chart-container {
+            margin-top: 30px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        {% comment %} <img src="{% static 'analyzer/youtube-logo.png' %}" alt="YouTube Logo" width="80"> {% endcomment %}
+        <h2>YouTube Comment Sentiment Analyzer</h2>
+
+        <form method="POST" id="analyze-form">
+            {% csrf_token %}
+            <input type="text" name="youtube_url" placeholder="Enter YouTube video URL" required>
+            <br>
+            <button type="submit">Analyze</button>
+        </form>
+
+        <div id="result"></div>
+        <div id="chart-container">
+            <canvas id="sentimentChart" width="400" height="400"></canvas>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('analyze-form').onsubmit = async function(e) {
+            e.preventDefault();
+            document.getElementById('result').innerText = 'Analyzing...';
+            document.getElementById('sentimentChart').style.display = 'none';
+
+            const formData = new FormData(this);
+            const response = await fetch('/', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                }
+            });
+
+            const data = await response.json();
+            checkTaskStatus(data.task_id);
+        };
+
+        async function checkTaskStatus(taskId) {
+            const response = await fetch(`/result/${taskId}/`);
+            const data = await response.json();
+
+            if (data.status === 'done') {
+                const { positive, neutral, negative } = data.result;
+
+                document.getElementById('result').innerHTML = `
+                    <p>Positive: ${positive}%</p>
+                    <p>Neutral: ${neutral}%</p>
+                    <p>Negative: ${negative}%</p>
+                `;
+
+                const ctx = document.getElementById('sentimentChart').getContext('2d');
+                document.getElementById('sentimentChart').style.display = 'block';
+
+                new Chart(ctx, {
+                    type: 'pie',
+                    data: {
+                        labels: ['Positive', 'Neutral', 'Negative'],
+                        datasets: [{
+                            data: [positive, neutral, negative],
+                            backgroundColor: ['#2ecc71', '#f1c40f', '#e74c3c'],
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: {
+                                labels: {
+                                    color: 'white'
+                                }
+                            }
+                        }
+                    }
+                });
+            } else {
+                setTimeout(() => checkTaskStatus(taskId), 2000);
+            }
+        }
+    </script>
+</body>
+</html>
